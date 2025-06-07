@@ -7,29 +7,27 @@ class Auth extends BaseController
     public function register()
     {
         helper(['form']);
+
         if ($this->request->getMethod() === 'post') {
             $rules = [
-                'username' => 'required|min_length[3]|is_unique[users.username]',
+                'username' => 'required|min_length[3]',
                 'email'    => 'required|valid_email|is_unique[users.email]',
                 'password' => 'required|min_length[6]',
-                'pass_confirm' => 'required_with[password]|matches[password]'
+                'agreement' => 'required'
             ];
 
             if (!$this->validate($rules)) {
-                return view('auth/register', [
-                    'validation' => $this->validator
-                ]);
+                return redirect()->back()->withInput()->with('error', implode(' ', $this->validator->getErrors()));
             }
 
-            $model = new UserModel();
-            $model->save([
-                'username' => $this->request->getPost('username'),
-                'email'    => $this->request->getPost('email'),
-                'password' => $this->request->getPost('password'),
-                'role'     => 'user'
+            $userModel = new UserModel();
+            $userModel->save([
+                'username' => esc($this->request->getPost('username')),
+                'email'    => esc($this->request->getPost('email')),
+                'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
             ]);
 
-            return redirect()->to('/login')->with('success', 'Registrasi berhasil. Silakan login.');
+            return redirect()->to('/login')->with('success', 'Pendaftaran berhasil. Silakan login.');
         }
 
         return view('auth/register');
@@ -38,23 +36,16 @@ class Auth extends BaseController
     public function login()
     {
         helper(['form']);
+
         if ($this->request->getMethod() === 'post') {
-            $rules = [
-                'email'    => 'required|valid_email',
-                'password' => 'required'
-            ];
+            $email    = $this->request->getPost('email');
+            $password = $this->request->getPost('password');
 
-            if (!$this->validate($rules)) {
-                return view('auth/login', [
-                    'validation' => $this->validator
-                ]);
-            }
+            $userModel = new UserModel();
+            $user = $userModel->where('email', $email)->first();
 
-            $model = new UserModel();
-            $user = $model->where('email', $this->request->getPost('email'))->first();
-
-            if ($user && password_verify($this->request->getPost('password'), $user['password'])) {
-                $this->setUserSession($user);
+            if ($user && password_verify($password, $user['password'])) {
+                session()->set(['username' => $user['username'], 'isLoggedIn' => true]);
                 return redirect()->to('/dashboard');
             }
 
@@ -62,20 +53,6 @@ class Auth extends BaseController
         }
 
         return view('auth/login');
-    }
-
-    private function setUserSession($user)
-    {
-        $data = [
-            'id'       => $user['id'],
-            'username' => $user['username'],
-            'email'    => $user['email'],
-            'role'     => $user['role'],
-            'isLoggedIn' => true
-        ];
-
-        session()->set($data);
-        return true;
     }
 
     public function logout()

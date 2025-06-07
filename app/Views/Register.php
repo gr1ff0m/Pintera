@@ -34,14 +34,6 @@
           <input type="password" id="password" name="password" placeholder="Kata sandi" required>
         </div>
 
-        <div class="form-group">
-          <label for="role">Daftar sebagai:</label>
-          <select id="role" name="role" required>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-
         <div class="checkbox-container">
           <input type="checkbox" id="agreement" name="agreement" required>
           <label for="agreement">Saya setuju dengan syarat & ketentuan</label>
