@@ -16,7 +16,7 @@ class Users extends Migration
             'auto_increment' => true
             ],
 
-            'name' => [
+            'username' => [
                 'type' =>'VARCHAR',
                 'constraint' => 255,
                 'null' => false
